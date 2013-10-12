@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TrialByRally</title>
+
+    <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function () {
+                Ext.define('CustomApp', {
+    extend: 'Rally.app.App',
+    componentCls: 'app',
+
+    launch: function() {
+        
+        console.log('context', this.getContext().getDataContext());
+       Rally.data.ModelFactory.getModel({
+         type: 'Project',
+         context: this.getContext().getDataContext(),
+        success: function(model) {
+            console.log('got', model);
+            
+            var projId = 103926039;
+            model.load(projId, {
+                fetch: ['Name'],
+                callback: function(result, operation) {
+                    console.log("loaded proj", result, operation);
+                }
+            })
+            }
+
+        });
+    }
+});
+
+
+            Rally.launchApp('CustomApp', {
+                name:"TrialByRally",
+	            parentRepos:""
+            });
+
+        });
+    </script>
+
+
+    <style type="text/css">
+        .app {
+     /* Add app styles here */
+}
+
+    </style>
+</head>
+<body></body>
+</html>
