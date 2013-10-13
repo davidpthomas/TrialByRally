@@ -3,11 +3,15 @@ Ext.define('CustomApp', {
     componentCls: 'app',
 
     data: {
+        companyName: '',
         lineOfBusinessName: '',
-        pilotProjectName: '',
-        selectedParentProject: '',
+        pilotTeamName: '',
+        selectedParentProject: ''
     },
     projectModel: null,
+    projectCounter: 0,
+    projectCountTotal: 0,
+    
     projectTree: {
         name: 'RallyTrial',
         children: [
@@ -35,7 +39,18 @@ Ext.define('CustomApp', {
     launch: function() {
         this._buildWizard();
     },
-
+    
+    _countProjects:function(tree) {
+        if (tree.name) {
+            this.projectCountTotal++;
+            if (tree.children)  {
+                Ext.Array.each(tree.children, function(child) {
+                    this._countProjects(child);
+                    }, this);
+            }
+        }
+    },
+        
     /* PRIVATE */    
     _buildWizard: function() {
         var me = this;    
@@ -92,20 +107,20 @@ Ext.define('CustomApp', {
                 },
                 {
                     xtype: 'rallytextfield',
-                    itemId: 'lineOfBusinessName',
-                    fieldLabel: 'Line of Business',
+                    itemId: 'companyName',
+                    fieldLabel: 'Company Name',
                     labelAlign: 'right',
                     width: 350,
                     labelWidth: 100,
                     labelCls: 'field-label',
-                    emptyText: 'Consumer Products, Home Mortgages, etc',
+                    emptyText: 'Acme Inc., Widgets Unlimited, etc',
                     listeners: {
                         change: function(textfield, newValue, oldValue) {
-                            this.data.lineOfBusinessName = newValue;
+                            this.data.companyName = newValue;
                             var nextButton = Ext.getCmp('nav-button-next');
-                            var pilotProjectName = this.down('#pilotProjectName').getValue();
-                            
-                            if (newValue.length > 0 && pilotProjectName.length > 0) {
+                            var pilotTeamName = this.down('#pilotTeamName').getValue();
+                            var lineOfBusinessName = this.down('#lineOfBusinessName').getValue();
+                            if (newValue.length > 0 && pilotTeamName.length > 0 && lineOfBusinessName > 0) {
                                 nextButton.setDisabled(false);
                             } else {
                                 nextButton.setDisabled(true);
@@ -119,7 +134,35 @@ Ext.define('CustomApp', {
                 },
                 {
                     xtype: 'rallytextfield',
-                    itemId: 'pilotProjectName',
+                    itemId: 'lineOfBusinessName',
+                    fieldLabel: 'Line of Business',
+                    labelAlign: 'right',
+                    width: 350,
+                    labelWidth: 100,
+                    labelCls: 'field-label',
+                    emptyText: 'Consumer Products, Home Mortgages, etc',
+                    listeners: {
+                        change: function(textfield, newValue, oldValue) {
+                            this.data.lineOfBusinessName = newValue;
+                            var nextButton = Ext.getCmp('nav-button-next');
+                            var companyName = this.down('#companyName').getValue();
+                            var pilotTeamName = this.down('#pilotTeamName').getValue();
+                            
+                            if (newValue.length > 0 && companyName.length > 0 && pilotTeamName.length > 0) {
+                                nextButton.setDisabled(false);
+                            } else {
+                                nextButton.setDisabled(true);
+                            }
+                        },
+                        focus: function(textfield) {
+                                textfield.setValue('');
+                        },
+                        scope: this
+                    }
+                },
+                {
+                    xtype: 'rallytextfield',
+                    itemId: 'pilotTeamName',
                     fieldLabel: 'Pilot Project',
                     labelAlign: 'right',
                     width: 350,
@@ -128,11 +171,11 @@ Ext.define('CustomApp', {
                     emptyText: 'Scrum Team #1, Red Team, Flying Aces, etc',
                     listeners: {
                         change: function(textfield, newValue, oldValue) {
-                            
-                            this.data.pilotProjectName = newValue;
+                            this.data.pilotTeamName = newValue;
                             var nextButton = Ext.getCmp('nav-button-next');
+                            var companyName = this.down('#companyName').getValue();
                             var lineOfBusinessName = this.down('#lineOfBusinessName').getValue();
-                            if (newValue.length > 0 && lineOfBusinessName.length > 0) {
+                            if (newValue.length > 0 && companyName.length > 0 && lineOfBusinessName.length > 0) {
                                 nextButton.setDisabled(false);
                             } else {
                                 nextButton.setDisabled(true);
@@ -152,7 +195,7 @@ Ext.define('CustomApp', {
                 "<div class='content'>We're prepared to setup your Trial.  Feel free to go back and make any changes.</div>",
                 "<div class='content'>&nbsp;&nbsp;&nbsp;&nbsp;<b>Project:</b> {selectedParentProject}</div>",
                 "<div class='content'>&nbsp;&nbsp;&nbsp;&nbsp;<b>Line of Business:</b> {lineOfBusinessName}</div>",
-                "<div class='content'>&nbsp;&nbsp;&nbsp;&nbsp;<b>Pilot Project:</b> {pilotProjectName}</div>",
+                "<div class='content'>&nbsp;&nbsp;&nbsp;&nbsp;<b>Pilot Project:</b> {pilotTeamName}</div>",
                 "<div class='content'>Click 'Setup Trial' to begin your Trial!</div>"
                 )
         });
@@ -234,7 +277,7 @@ Ext.define('CustomApp', {
         }
         
         // require business and project names
-        if (cardId === 'card-names' && (me.data.lineOfBusinessName.length === 0 || me.data.pilotProjectName.length === 0 )) {
+        if (cardId === 'card-names' && (me.data.lineOfBusinessName.length === 0 || me.data.pilotTeamName.length === 0 )) {
             nextButton.setDisabled(true);
         } else {
             nextButton.setDisabled(false);
@@ -251,20 +294,25 @@ Ext.define('CustomApp', {
             var loadMask = new Ext.LoadMask(layout.getActiveItem(), {msg: "Creating Trial..."});    
             loadMask.show();
 
-            me.createTrial();
+            me._createTrial();
         }
         
     },
 
     _createTrial: function() {
+        var me = this;
+        
+        me._countProjects(this.projectTree);
         // create project structure
+        me._loadProjectModel();
         // create artifacts
-            me._loadProjectModel();
     },
     _createProjects: function() {
-
-        var workspaceRef = '/workspace/699220';   // TODO get this from User
-        this._createProjectTree(workspaceRef, null, this.projectTree.name, this.projectTree.children);
+        var me = this;
+        me.projectTree.children[0].name = me.data.companyName;
+        me.projectTree.children[0].children[0].name = me.data.lineOfBusinessName;
+        me.projectTree.children[0].children[0].children[0].children[0].name = me.data.pilotTeamName;
+        me._createProjectTree(me.getContext().getWorkspaceRef(), me.data.selectedParentProject, this.projectTree.name, this.projectTree.children);
     },    
     
     _createProjectTree: function(workspaceRef, parentProjectRef, projectName, children) {
@@ -278,12 +326,21 @@ Ext.define('CustomApp', {
         });
         record.save({
            callback: function(result, operation) {
+               //TODO handle fail?
+               me.projectCounter++;
                var currParentProjectId = result.get('ObjectID');
                Ext.Array.each(children, function(child) {
                    me._createProjectTree(workspaceRef, currParentProjectId, child.name, child.children);
-               })
+               });
+               me._onProjectCreated();
            } 
         });
+    },
+
+    _onProjectCreated: function() {
+        if (this.projectCounter === this.projectCountTotal) {
+            console.log("Projects Created!");
+        }
     },
     
     _loadProjectModel: function() {

@@ -4,7 +4,8 @@
    "server": "https://demo03.rallydev.com",
    "sdk": "2.0rc1",
    "javascript": [
-      "App.js"
+      "App.js",
+      "async.js"
    ],
    "css": [
       "app.css"
