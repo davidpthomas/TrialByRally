@@ -7,7 +7,7 @@
 
     <script type="text/javascript">
         Rally.onReady(function () {
-                Ext.define("CustomApp",{extend:"Rally.app.App",componentCls:"app",launch:function(){console.log("context",this.getContext().getDataContext()),Rally.data.ModelFactory.getModel({type:"Project",context:this.getContext().getDataContext(),success:function(model){console.log("got",model);var projId=103926039;model.load(projId,{fetch:["Name"],callback:function(result,operation){console.log("loaded proj",result,operation)}})}})}});
+                Ext.define("CustomApp",{extend:"Rally.app.App",componentCls:"app",selectedParentProject:null,projectModel:null,projectTree:{name:"RallyTrial",children:[{name:"Company",children:[{name:"Line of Business",children:[{name:"Pilot Team",children:[{name:"Company Team"},{name:"Rally Team"}]}]}]}]},launch:function(){var me=this,navigate=function(panel,direction){var layout=panel.getLayout();layout[direction]();var backButton=Ext.getCmp("move-prev"),nextButton=Ext.getCmp("move-next");backButton.setDisabled(!layout.getPrev()),nextButton.setDisabled(!layout.getNext()),layout.getPrev()?nextButton.setText("Next"):nextButton.setText("Start"),"card-4"===layout.getNext().getItemId()&&nextButton.setDisabled(!0),layout.getNext()||(backButton.setDisabled(!layout.getPrev()),nextButton.setText("Finished!"),me._loadProjectModel())},card1=Ext.create("Ext.Component",{itemId:"card-1",html:"Welcome to Rally.<br/><br/>Let's start your Trial!"}),card2=Ext.create("Ext.Component",{itemId:"card-2",html:"Lets take this journey together by setting up a Trial Initiative and track our progress with some Stories!"}),card3=Ext.create("Ext.Container",{itemId:"card-3",items:[{html:"We will be creating a small project structure to store our initiatives, stories, etc.<br><br>  Pick an existing project to be the parent of our new structure.",margin:"0 0 15 0",border:0},{xtype:"rallyprojectpicker",fieldLabel:"Project",showMostRecentlyUsedProjects:!1,showProjectScopeUpAndDown:!1,workspace:this.getContext().getWorkspaceRef(),listeners:{change:function(picker){this.selectedParentProject=picker.getValue();var nextButton=Ext.getCmp("move-next");nextButton.setDisabled(!1)},scope:this}}]}),card4=Ext.create("Ext.Container",{itemId:"card-4",items:[{html:"We need a few names to customize the project structure.",border:0,margin:"0 0 10 0"},{xtype:"rallytextfield",fieldLabel:"Line of Business",cls:"field-label"},{html:"e.g. Consumer Products, Home Mortgages, etc",border:0,margin:"0 0 15 0",cls:"field-example"},{xtype:"rallytextfield",fieldLabel:"Pilot Project",cls:"field-label"},{html:"e.g. Scrum Team #1, Red Team, etc",border:0,cls:"field-example"}]}),card5=Ext.create("Ext.Component",{itemId:"card-5",html:"Congratulations!"}),wizard=Ext.create("Ext.panel.Panel",{title:"TrialByRally",width:400,height:300,layout:"card",bodyStyle:"padding: 15px",defaults:{border:!1},bbar:[{id:"move-prev",text:"Back",handler:function(btn){navigate(btn.up("panel"),"prev")},disabled:!0},"->",{id:"move-next",text:"Start",handler:function(btn){navigate(btn.up("panel"),"next")},disabled:!1}],items:[card4]});this.add(wizard)},_createProjects:function(l){var workspaceRef="/workspace/699220";this._createProjectTree(workspaceRef,null,this.projectTree.name,this.projectTree.children)},_createProjectTree:function(workspaceRef,parentProjectRef,projectName,children){var me=this;console.log("creating project",workspaceRef,parentProjectRef,projectName,children);var record=Ext.create(this.projectModel,{Name:projectName,State:"Open",Parent:parentProjectRef,Workspace:workspaceRef});console.log("record",record),record.save({callback:function(result,operation){console.log("save result",result,operation),console.log(result.get("ObjectID"),result.get("Name"));var currParentProjectId=result.get("ObjectID");Ext.Array.each(children,function(child){console.log("child",child.name,child.children),me._createProjectTree(workspaceRef,currParentProjectId,child.name,child.children)})}})},_loadProjectModel:function(){Rally.data.ModelFactory.getModel({type:"Project",context:this.getContext().getDataContext(),scope:this,success:function(model){this.projectModel=model,this._createProjects()}},this)}});
 
             Rally.launchApp('CustomApp', {
                 name:"TrialByRally",
@@ -23,6 +23,13 @@
      /* Add app styles here */
 }
 
+.field-label {
+    font-style: 'bold'
+}
+
+.field-example {
+    font-style: 'italics'
+}
     </style>
 </head>
 <body></body>
