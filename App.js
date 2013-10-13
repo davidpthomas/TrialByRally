@@ -34,22 +34,7 @@ Ext.define('CustomApp', {
     
     launch: function() {
         var me = this;    
-        /*
-Ext.create('Rally.data.WsapiDataStore', {
-    model: 'Workspace',
-    autoLoad: true,
-    fetch: true,
-    context: {
-        workspace: '',
-        project: ''
-    },
-    listeners: {
-        load: function(store, data) {
-            console.log("ws", data);
-        }
-    }
-});
-*/
+
         var navigate = function(panel, direction) {
             console.log('data', me.data);
             var layout = panel.getLayout();
@@ -68,11 +53,14 @@ Ext.create('Rally.data.WsapiDataStore', {
             } else {
                 nextButton.setText('Next');
             }    
+                        // require project selection
+            if (layout.getActiveItem().getItemId() === 'card-3') {
+                backButton.show();
+            }
             // require project selection
             if (layout.getActiveItem().getItemId() === 'card-3') {
                 nextButton.setDisabled(true);
             }
-            
             // require business and project names
             if (layout.getActiveItem().getItemId() === 'card-4') {
                 nextButton.setDisabled(true);
@@ -230,7 +218,7 @@ Ext.create('Rally.data.WsapiDataStore', {
                     handler: function(btn) {
                         navigate(btn.up('panel'), 'prev');
                     },
-                    disabled: true
+                    hidden: true
                 },
                 '->',
                 {

@@ -11,7 +11,11 @@
     extend: 'Rally.app.App',
     componentCls: 'app',
 
-    selectedParentProject: null,
+    data: {
+        lineOfBusinessName: null,
+        pilotProjectName: null,
+        selectedParentProject: null,
+    },
     projectModel: null,
     projectTree: {
         name: 'RallyTrial',
@@ -39,9 +43,12 @@
     
     launch: function() {
         var me = this;    
-        
+
         var navigate = function(panel, direction) {
+            console.log('data', me.data);
             var layout = panel.getLayout();
+            
+
             layout[direction]();
             
             var backButton = Ext.getCmp('move-prev');
@@ -55,15 +62,30 @@
             } else {
                 nextButton.setText('Next');
             }    
-            if (layout.getNext().getItemId() === 'card-4') {
+                        // require project selection
+            if (layout.getActiveItem().getItemId() === 'card-3') {
+                backButton.show();
+            }
+            // require project selection
+            if (layout.getActiveItem().getItemId() === 'card-3') {
                 nextButton.setDisabled(true);
             }
+            // require business and project names
+            if (layout.getActiveItem().getItemId() === 'card-4') {
+                nextButton.setDisabled(true);
+            }
+            // populate confirmation card with given data    
+            if (layout.getActiveItem().getItemId() === 'card-5') {
+                me.down('#card-5').update(me.data);
+            }
+            if (layout.getActiveItem().getItemId() === 'card-6') {
+                backButton.hide();
+                nextButton.hide();
             
-            if (!layout.getNext()) {
-                backButton.setDisabled(!layout.getPrev());
-                nextButton.setText('Finished!');
+                // TODO loadmask    
                 me._loadProjectModel();
             }
+            
         };
         
         var card1 = Ext.create('Ext.Component', {
@@ -94,7 +116,7 @@
                     workspace: this.getContext().getWorkspaceRef(),
                     listeners: {
                         change: function(picker) {
-                            this.selectedParentProject = picker.getValue();
+                            this.data.selectedParentProject = picker.getValue();
                             var nextButton = Ext.getCmp('move-next');
                             nextButton.setDisabled(false);
                         },
@@ -114,8 +136,25 @@
                 },
                 {
                     xtype: 'rallytextfield',
+                    itemId: 'lineOfBusinessName',
                     fieldLabel: 'Line of Business',
-                    cls: 'field-label'
+                    labelAlign: 'right',
+                    labelWidth: 100,
+                    labelCls: 'field-label',
+                    listeners: {
+                        change: function(textfield, newValue, oldValue) {
+                            this.data.lineOfBusinessName = newValue;
+                            var nextButton = Ext.getCmp('move-next');
+                            var pilotProjectName = this.down('#pilotProjectName').getValue();
+                            
+                            if (newValue.length > 0 && pilotProjectName.length > 0) {
+                                nextButton.setDisabled(false);
+                            } else {
+                                nextButton.setDisabled(true);
+                            }
+                        },
+                        scope: this
+                    }
                 },
                 {
                     html: 'e.g. Consumer Products, Home Mortgages, etc',
@@ -125,8 +164,25 @@
                 },
                 {
                     xtype: 'rallytextfield',
+                    itemId: 'pilotProjectName',
                     fieldLabel: 'Pilot Project',
-                    cls: 'field-label'
+                    labelAlign: 'right',
+                    labelWidth: 100,
+                    labelCls: 'field-label',
+                    listeners: {
+                        change: function(textfield, newValue, oldValue) {
+                            
+                            this.data.pilotProjectName = newValue;
+                            var nextButton = Ext.getCmp('move-next');
+                            var lineOfBusinessName = this.down('#lineOfBusinessName').getValue();
+                            if (newValue.length > 0 && lineOfBusinessName.length > 0) {
+                                nextButton.setDisabled(false);
+                            } else {
+                                nextButton.setDisabled(true);
+                            }
+                        },
+                        scope: this
+                    }
                 },
                 {
                     html: 'e.g. Scrum Team #1, Red Team, etc',
@@ -138,6 +194,20 @@
         
         var card5 = Ext.create('Ext.Component', {
             itemId: 'card-5',
+            data: null,
+            tpl: new Ext.XTemplate(
+                'Line of Business: {lineOfBusinessName}',
+                'Pilot Project: {pilotProjectName}'
+                )
+        });
+        
+        var card6 = Ext.create('Ext.Component', {
+            itemId: 'card-6',
+            html: 'We are building your Trial!'
+        });
+    
+        var card7 = Ext.create('Ext.Component', {
+            itemId: 'card-6',
             html: 'Congratulations!'
         });
         
@@ -157,7 +227,7 @@
                     handler: function(btn) {
                         navigate(btn.up('panel'), 'prev');
                     },
-                    disabled: true
+                    hidden: true
                 },
                 '->',
                 {
@@ -170,7 +240,7 @@
                 }
             ],
             items: [
-                card4
+                card1, card2, card3, card4, card5, card6
             ]
         });
         this.add(wizard);
@@ -234,11 +304,13 @@
 }
 
 .field-label {
-    font-style: 'bold'
+    font-weight: bold;
+    color: red;
 }
 
 .field-example {
-    font-style: 'italics'
+    font-style: italic;
+    color: blue;
 }
     </style>
 </head>
