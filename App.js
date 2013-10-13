@@ -3,9 +3,9 @@ Ext.define('CustomApp', {
     componentCls: 'app',
 
     data: {
-        lineOfBusinessName: null,
-        pilotProjectName: null,
-        selectedParentProject: null,
+        lineOfBusinessName: '',
+        pilotProjectName: '',
+        selectedParentProject: '',
     },
     projectModel: null,
     projectTree: {
@@ -33,82 +33,47 @@ Ext.define('CustomApp', {
     },
     
     launch: function() {
+        this._buildWizard();
+    },
+
+    /* PRIVATE */    
+    _buildWizard: function() {
         var me = this;    
 
-        var navigate = function(panel, direction) {
-            console.log('data', me.data);
-            var layout = panel.getLayout();
-            
-
-            layout[direction]();
-            
-            var backButton = Ext.getCmp('move-prev');
-            var nextButton = Ext.getCmp('move-next');
-            
-            backButton.setDisabled(!layout.getPrev());
-            nextButton.setDisabled(!layout.getNext());
-            
-            if (!layout.getPrev()) {
-                nextButton.setText('Start');
-            } else {
-                nextButton.setText('Next');
-            }    
-                        // require project selection
-            if (layout.getActiveItem().getItemId() === 'card-3') {
-                backButton.show();
-            }
-            // require project selection
-            if (layout.getActiveItem().getItemId() === 'card-3') {
-                nextButton.setDisabled(true);
-            }
-            // require business and project names
-            if (layout.getActiveItem().getItemId() === 'card-4') {
-                nextButton.setDisabled(true);
-            }
-            // populate confirmation card with given data    
-            if (layout.getActiveItem().getItemId() === 'card-5') {
-                me.down('#card-5').update(me.data);
-            }
-            if (layout.getActiveItem().getItemId() === 'card-6') {
-                backButton.hide();
-                nextButton.hide();
-            
-                // TODO loadmask    
-                me._loadProjectModel();
-            }
-            
-        };
-        
-        var card1 = Ext.create('Ext.Component', {
-            itemId: 'card-1',
-            html: "Welcome to Rally.<br/><br/>Let's start your Trial!"
+        var cardStart = Ext.create('Ext.Component', {
+            itemId: 'card-start',
+            html: "<div class='headline'>Welcome to your Rally Trial.</div><div class='content'>Organizations use Rally to accelerate the pace of innovation, improve productivity, and more effectively adapt to rapidly changing customer needs and competitive dynamics.</div><div class='content'>Get on the fast track to evaluating Rally.<br/>Click 'Start' to begin!</div>"
         });
         
         
-        var card2 = Ext.create('Ext.Component', {
-            itemId: 'card-2',
-            html: "Lets take this journey together by setting up a Trial Initiative and track our progress with some Stories!" 
+        var cardOverview = Ext.create('Ext.Component', {
+            itemId: 'card-overview',
+            html: "<div class='headline'>Lets Get Started.</div><div class='content'>Agile teams increase their effectiveness by making work visible.</div><div class='content'>Lets make your trial experience impactful by using the Rally Product to guide you through the process.</div><div class='content'>We'll start by creating some Initiatives and User Stories to define our work.</div>" 
         });
         
         
-        var card3 = Ext.create('Ext.Container', {
-            itemId: 'card-3',
+        var cardPickProject = Ext.create('Ext.Container', {
+            itemId: 'card-pick-project',
             items: [
                 {
-                    html: 'We will be creating a small project structure to store our initiatives, stories, etc.<br><br>  Pick an existing project to be the parent of our new structure.',
+                    html: "<div class='headline'>Setup our Organization.</div><div class='content'>We will begin by creating a structure to model your Organization and Team that is evaluating Rally.</div><div class='content'>Pick a project from the list.  We will simply be creating our Evaluation Projects underneath it.</div>",
                     margin: '0 0 15 0',
                     border: 0
                 },
                 {
                     xtype: 'rallyprojectpicker',
                     fieldLabel: 'Project',
+                    labelAlign: 'right',
+                    width: 300,
+                    labelWidth: 100,
+                    labelCls: 'field-label',
                     showMostRecentlyUsedProjects: false,
                     showProjectScopeUpAndDown: false,
                     workspace: this.getContext().getWorkspaceRef(),
                     listeners: {
                         change: function(picker) {
                             this.data.selectedParentProject = picker.getValue();
-                            var nextButton = Ext.getCmp('move-next');
+                            var nextButton = Ext.getCmp('nav-button-next');
                             nextButton.setDisabled(false);
                         },
                         scope: this
@@ -117,11 +82,11 @@ Ext.define('CustomApp', {
             ]
         });
         
-        var card4 = Ext.create('Ext.Container', {
-            itemId: 'card-4',
+        var cardNames = Ext.create('Ext.Container', {
+            itemId: 'card-names',
             items: [
                 {
-                    html: 'We need a few names to customize the project structure.',
+                    html: "<div class='headline'>Customized Names.</div><div class='content'>To make your experience feel at home, we'd like to use relevant names in the tool setup.</div><div class='content'>Please provide an example Line of Business and pilot Team Name.</div>",
                     border: 0,
                     margin: '0 0 10 0'
                 },
@@ -130,12 +95,14 @@ Ext.define('CustomApp', {
                     itemId: 'lineOfBusinessName',
                     fieldLabel: 'Line of Business',
                     labelAlign: 'right',
+                    width: 350,
                     labelWidth: 100,
                     labelCls: 'field-label',
+                    emptyText: 'Consumer Products, Home Mortgages, etc',
                     listeners: {
                         change: function(textfield, newValue, oldValue) {
                             this.data.lineOfBusinessName = newValue;
-                            var nextButton = Ext.getCmp('move-next');
+                            var nextButton = Ext.getCmp('nav-button-next');
                             var pilotProjectName = this.down('#pilotProjectName').getValue();
                             
                             if (newValue.length > 0 && pilotProjectName.length > 0) {
@@ -144,27 +111,26 @@ Ext.define('CustomApp', {
                                 nextButton.setDisabled(true);
                             }
                         },
+                        focus: function(textfield) {
+                                textfield.setValue('');
+                        },
                         scope: this
                     }
-                },
-                {
-                    html: 'e.g. Consumer Products, Home Mortgages, etc',
-                    border: 0,
-                    margin: '0 0 15 0',
-                    cls: 'field-example'
                 },
                 {
                     xtype: 'rallytextfield',
                     itemId: 'pilotProjectName',
                     fieldLabel: 'Pilot Project',
                     labelAlign: 'right',
+                    width: 350,
                     labelWidth: 100,
                     labelCls: 'field-label',
+                    emptyText: 'Scrum Team #1, Red Team, Flying Aces, etc',
                     listeners: {
                         change: function(textfield, newValue, oldValue) {
                             
                             this.data.pilotProjectName = newValue;
-                            var nextButton = Ext.getCmp('move-next');
+                            var nextButton = Ext.getCmp('nav-button-next');
                             var lineOfBusinessName = this.down('#lineOfBusinessName').getValue();
                             if (newValue.length > 0 && lineOfBusinessName.length > 0) {
                                 nextButton.setDisabled(false);
@@ -174,38 +140,38 @@ Ext.define('CustomApp', {
                         },
                         scope: this
                     }
-                },
-                {
-                    html: 'e.g. Scrum Team #1, Red Team, etc',
-                    border: 0,
-                    cls: 'field-example'
-                },
+                }
             ]
         });
         
-        var card5 = Ext.create('Ext.Component', {
-            itemId: 'card-5',
+        var cardConfirmation = Ext.create('Ext.Component', {
+            itemId: 'card-confirmation',
             data: null,
             tpl: new Ext.XTemplate(
-                'Line of Business: {lineOfBusinessName}',
-                'Pilot Project: {pilotProjectName}'
+                "<div class='headline'>Confirmation.</div>",
+                "<div class='content'>We're prepared to setup your Trial.  Feel free to go back and make any changes.</div>",
+                "<div class='content'>&nbsp;&nbsp;&nbsp;&nbsp;<b>Project:</b> {selectedParentProject}</div>",
+                "<div class='content'>&nbsp;&nbsp;&nbsp;&nbsp;<b>Line of Business:</b> {lineOfBusinessName}</div>",
+                "<div class='content'>&nbsp;&nbsp;&nbsp;&nbsp;<b>Pilot Project:</b> {pilotProjectName}</div>",
+                "<div class='content'>Click 'Setup Trial' to begin your Trial!</div>"
                 )
         });
         
-        var card6 = Ext.create('Ext.Component', {
-            itemId: 'card-6',
-            html: 'We are building your Trial!'
+        var cardStatus = Ext.create('Ext.Component', {
+            itemId: 'card-status',
+            html: ''   // we have a loadmask
         });
     
-        var card7 = Ext.create('Ext.Component', {
-            itemId: 'card-6',
+        var cardFinish = Ext.create('Ext.Component', {
+            itemId: 'card-final',
             html: 'Congratulations!'
         });
         
         var wizard = Ext.create('Ext.panel.Panel', {
-            title: 'TrialByRally',
+            itemId: 'wizard',
+            title: 'Trial By Rally',
             width: 400,
-            height: 300,
+            height: 350,
             layout: 'card',
             bodyStyle: 'padding: 15px',
             defaults: {
@@ -213,34 +179,92 @@ Ext.define('CustomApp', {
             },
             bbar: [
                 {
-                    id: 'move-prev',
+                    id: 'nav-button-back',
                     text: 'Back',
                     handler: function(btn) {
-                        navigate(btn.up('panel'), 'prev');
+                        this._navigate(btn.up('panel'), 'prev');
                     },
+                    scope: me,
                     hidden: true
                 },
                 '->',
                 {
-                    id: 'move-next',
+                    id: 'nav-button-next',
                     text: 'Start',
                     handler: function(btn) {
-                        navigate(btn.up('panel'), 'next');
+                        this._navigate(btn.up('panel'), 'next');
                     },
+                    scope: me,
                     disabled: false
                 }
             ],
             items: [
-                card1, card2, card3, card4, card5, card6
+                cardStart, cardOverview, cardPickProject, cardNames, cardConfirmation, cardStatus, cardFinish
             ]
         });
         this.add(wizard);
     },
 
-    _createProjects: function(l) {
+    _navigate: function(panel, direction) {
+        var me = this;
+        
+        var layout = panel.getLayout();
+        layout[direction]();    // change to next card (prev or next)
+        
+        var backButton = Ext.getCmp('nav-button-back');
+        var nextButton = Ext.getCmp('nav-button-next');
+    
+        var cardId = layout.getActiveItem().getItemId();
+        
+        if (cardId === 'card-start') {
+            nextButton.setText('Start');
+            backButton.hide();
+        } else {
+            nextButton.setText('Next');
+        }    
+                    // require project selection
+        if (cardId === 'card-overview') {
+            backButton.show();
+        }
+        // require project selection
+        if (cardId === 'card-pick-project' && me.data.selectedParentProject.length === 0) {
+            nextButton.setDisabled(true);
+        } else {
+            nextButton.setDisabled(false);
+        }
+        
+        // require business and project names
+        if (cardId === 'card-names' && (me.data.lineOfBusinessName.length === 0 || me.data.pilotProjectName.length === 0 )) {
+            nextButton.setDisabled(true);
+        } else {
+            nextButton.setDisabled(false);
+        }
+        
+        // populate confirmation card with given data    
+        if (cardId === 'card-confirmation') {
+            me.down('#card-confirmation').update(me.data);
+            nextButton.setText('Setup Trial');
+        }
+        if (cardId === 'card-status') {
+            backButton.hide();
+            nextButton.hide();
+            var loadMask = new Ext.LoadMask(layout.getActiveItem(), {msg: "Creating Trial..."});    
+            loadMask.show();
+
+            me.createTrial();
+        }
+        
+    },
+
+    _createTrial: function() {
+        // create project structure
+        // create artifacts
+            me._loadProjectModel();
+    },
+    _createProjects: function() {
 
         var workspaceRef = '/workspace/699220';   // TODO get this from User
-        this._createProjectTree(workspaceRef, null, this.projectTree.name, this.projectTree.children)
+        this._createProjectTree(workspaceRef, null, this.projectTree.name, this.projectTree.children);
     },    
     
     _createProjectTree: function(workspaceRef, parentProjectRef, projectName, children) {
@@ -252,14 +276,10 @@ Ext.define('CustomApp', {
             Parent: parentProjectRef,
             Workspace: workspaceRef
         });
-        console.log('record', record);
         record.save({
            callback: function(result, operation) {
-               console.log('save result', result, operation);
-               console.log(result.get('ObjectID'), result.get('Name'));
                var currParentProjectId = result.get('ObjectID');
                Ext.Array.each(children, function(child) {
-                   console.log("child", child.name, child.children);
                    me._createProjectTree(workspaceRef, currParentProjectId, child.name, child.children);
                })
            } 

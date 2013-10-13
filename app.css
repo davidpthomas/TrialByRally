@@ -4,10 +4,19 @@
 
 .field-label {
     font-weight: bold;
-    color: red;
 }
 
-.field-example {
+.x-form-empty-field {
     font-style: italic;
-    color: blue;
+}
+
+.headline {
+    font-size: 3.0em;
+    font-family: arial, sans-serif;
+    margin: 20px 10px 20px 10px;
+}
+
+.content {
+    font-size: 1.5em;
+    margin: 10px;
 }
