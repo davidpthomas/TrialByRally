@@ -12,6 +12,8 @@ Ext.define('CustomApp', {
     projectCounter: 0,
     projectCountTotal: 0,
     
+    artifactCountTotal: 0,
+    
     projectTree: {
         name: 'RallyTrial',
         children: [
@@ -191,20 +193,10 @@ Ext.define('CustomApp', {
         ]
     },
     launch: function() {
+
         this._buildWizard();
     },
-    
-    _countProjects:function(tree) {
-        if (tree.name) {
-            this.projectCountTotal++;
-            if (tree.children)  {
-                Ext.Array.each(tree.children, function(child) {
-                    this._countProjects(child);
-                    }, this);
-            }
-        }
-    },
-        
+
     /* PRIVATE */    
     _buildWizard: function() {
         var me = this;    
@@ -452,13 +444,32 @@ Ext.define('CustomApp', {
         }
         
     },
+    
+    _countTreeChildren:function(tree, countRef) {
+        if (tree.name) {
+            countRef.counter++;
+            if (tree.children)  {
+                Ext.Array.each(tree.children, function(child) {
+                    this._countTreeChildren(child, countRef);
+                    }, this);
+            }
+        }
+    },
 
     _createTrial: function() {
         var me = this;
+    
+        var counterRef = {counter: 0};
+        me._countTreeChildren(me.projectTree, counterRef);
+        me.projectCountTotal = counterRef.counter;
+        console.log("Will create %i projects.", me.projectCountTotal);        
+        var counterRef = {counter: 0};
+        me._countTreeChildren(me.artifactTree, counterRef);
+        me.artifactCountTotal = counterRef.counter;
+        console.log("Will create %i artifacts.", me.artifactCountTotal);        
         
-        me._countProjects(this.projectTree);
         // create project structure
-        me._loadModels();
+        //me._loadModels();
         // create artifacts
     },
     _createProjects: function() {
