@@ -12,6 +12,7 @@ Ext.define('CustomApp', {
     projectCounter: 0,
     projectCountTotal: 0,
     
+    artifactCounter: 0,
     artifactCountTotal: 0,
     
     projectTree: {
@@ -38,12 +39,12 @@ Ext.define('CustomApp', {
         ]
     },
 
-    artifactTree: {
-        type: 'Initiative',
+    artifactTree2: {
+        type: 'PortfolioItem/Initiative',
         name: 'Successful Trial Pilot with (Line of Business Group)',
         children: [
             {
-                type: 'Feature',
+                type: 'PortfolioItem/Feature',
                 name: 'Administrative Activities',
                 children: [
                     {
@@ -60,7 +61,7 @@ Ext.define('CustomApp', {
                 ]
             },
             {
-                type: 'Feature',
+                type: 'PortfolioItem/Feature',
                 name: 'Rally Training + Working Sessions',
                 children: [
                     {
@@ -82,7 +83,7 @@ Ext.define('CustomApp', {
                                     { type: 'Task', name: 'What is driving your Agile and Lean Transformation?' },
                                     { type: 'Task', name: 'What is your organization hierarchy / structure?' },
                                     { type: 'Task', name: 'How do you organize your teams and / or work -- e.g. Team / Product / Feature / Component based?' },
-                                    { type: 'Task', name: 'What do you report, to whom, and why?' },
+                                    { type: 'Task', name: 'What do you report, to whom, and why?' }
                                 ]
                             },
                             {
@@ -107,7 +108,7 @@ Ext.define('CustomApp', {
                                         type: 'HierarchicalRequirement',
                                         name: 'Execution (Delvery Level)',
                                         children: [
-                                            { type: 'Task', name: 'Support for Scrum and Kanban' },
+                                            { type: 'Task', name: 'Support for Scrum and Kanban' }
                                         ]
                                     },
                                     {
@@ -115,9 +116,9 @@ Ext.define('CustomApp', {
                                         name: 'Extending Rally',
                                         children: [
                                             { type: 'Task', name: 'Apps and Dashboards' },
-                                            { type: 'Task', name: 'Web Services API' },
+                                            { type: 'Task', name: 'Web Services API' }
                                         ]
-                                    },
+                                    }
                                 ]
                             },
                             {
@@ -137,13 +138,13 @@ Ext.define('CustomApp', {
                                         name: 'Rally Support'
                                     }
                                 ]
-                            },
+                            }
                         ]
                     }
                 ]
             },
             {
-                type: 'Feature',
+                type: 'PortfolioItem/Feature',
                 name: 'The TRIAL',
                 children: [
                     {
@@ -157,8 +158,8 @@ Ext.define('CustomApp', {
                         type: 'HierarchicalRequirement',
                         name: 'Populate Team Backlog(s)',
                         children: [
-                            { Type: 'Task', name: '[RPM] create portfolio items' },
-                            { Type: 'Task', name: 'create stories' }
+                            { type: 'Task', name: '[RPM] create portfolio items' },
+                            { type: 'Task', name: 'create stories' }
                         ]
                     },
                     {
@@ -166,7 +167,7 @@ Ext.define('CustomApp', {
                         name: 'Scrum',
                         children: [
                             { type: 'Task', name: 'Define Release and Iteration time-boxes' },
-                            { type: 'Task', name: 'Plan Stories (Backlog) into Iterations' },
+                            { type: 'Task', name: 'Plan Stories (Backlog) into Iterations' }
                         ]
                     },
                     {
@@ -176,7 +177,7 @@ Ext.define('CustomApp', {
                             { type: 'Task', name: 'Define Kanban States' },
                             { type: 'Task', name: '[RPM] Define PI level value stream' },
                             { type: 'Task', name: 'Add/configure team Kanban board(s)' },
-                            { type: 'Task', name: '[RPM] Add/configure Portfolio Kanban board(s)' },
+                            { type: 'Task', name: '[RPM] Add/configure Portfolio Kanban board(s)' }
                         ]
                     },
                     {
@@ -184,12 +185,37 @@ Ext.define('CustomApp', {
                         name: 'Tracking',
                         children: [
                             { type: 'Task', name: 'Setup Pages (Dashboards)' },
-                            { type: 'Task', name: 'Setup Apps' },
+                            { type: 'Task', name: 'Setup Apps' }
                         ]
-                    },
+                    }
                 ]
-            },
+            }
             
+        ]
+    },
+    artifactTree: {
+        type: 'PortfolioItem/Initiative',
+        name: 'Successful Trial Pilot with (Line of Business Group)',
+        children: [
+            {
+                type: 'PortfolioItem/Feature',
+                name: 'Rally Training + Working Sessions',
+                children: [
+                    {
+                        type: 'HierarchicalRequirement',
+                        name: 'Rally/customer collaboration during trial',
+                        children: [
+                            {
+                                type: 'HierarchicalRequirement',
+                                name: "Understand Customer's organizational and operational environment",
+                                children: [
+                                    { type: 'Task', name: 'What is your Product-Team organizational structure to be managed using Agile approaches in Rally?' },
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
         ]
     },
     launch: function() {
@@ -353,7 +379,7 @@ Ext.define('CustomApp', {
     
         var cardFinish = Ext.create('Ext.Component', {
             itemId: 'card-final',
-            html: 'Congratulations!'
+            html: "<div class='headline'>Trial by Rally.</div><div class='content'>Managing your trial just got easier.<div><div class='content'>You now have a way to track your trial and ensure you Rally experience matches your needs.</div><div class='content'><b>Next Step:</b>Collaboration is key.  Your Rally account team will work with you to tailor dashboard views to monitor progress.  Contact them today!</div>"
         });
         
         var wizard = Ext.create('Ext.panel.Panel', {
@@ -437,8 +463,8 @@ Ext.define('CustomApp', {
         if (cardId === 'card-status') {
             backButton.hide();
             nextButton.hide();
-            var loadMask = new Ext.LoadMask(layout.getActiveItem(), {msg: "Creating Trial..."});    
-            loadMask.show();
+            me.loadMask = new Ext.LoadMask(layout.getActiveItem(), {msg: "Creating Trial..."});    
+            me.loadMask.show();
 
             me._createTrial();
         }
@@ -456,28 +482,13 @@ Ext.define('CustomApp', {
         }
     },
 
-    _createTrial: function() {
-        var me = this;
-    
-        var counterRef = {counter: 0};
-        me._countTreeChildren(me.projectTree, counterRef);
-        me.projectCountTotal = counterRef.counter;
-        console.log("Will create %i projects.", me.projectCountTotal);        
-        var counterRef = {counter: 0};
-        me._countTreeChildren(me.artifactTree, counterRef);
-        me.artifactCountTotal = counterRef.counter;
-        console.log("Will create %i artifacts.", me.artifactCountTotal);        
-        
-        // create project structure
-        //me._loadModels();
-        // create artifacts
-    },
+
     _createProjects: function() {
         var me = this;
         me.projectTree.children[0].name = me.data.companyName;
         me.projectTree.children[0].children[0].name = me.data.lineOfBusinessName;
         me.projectTree.children[0].children[0].children[0].children[0].name = me.data.pilotTeamName;
-        me._createProjectTree(me.getContext().getWorkspaceRef(), me.data.selectedParentProject, this.projectTree.name, this.projectTree.children);
+        me._createProjectTree(me.getContext().getWorkspaceRef(), me.data.selectedParentProject, me.projectTree.name, me.projectTree.children);
     },    
     
     _createProjectTree: function(workspaceRef, parentProjectRef, projectName, children) {
@@ -502,9 +513,79 @@ Ext.define('CustomApp', {
         });
     },
 
+    _createArtifacts: function() {
+        var me = this;
+        me._createArtifactTree(me.getContext().getWorkspaceRef(), '/project/699319', null, me.artifactTree.type, me.artifactTree.name, me.artifactTree.children);
+    },
+    
+    _createArtifactTree: function(workspaceRef, projectRef, parentRef, artifactType, artifactName, artifactChildren) {
+        var me = this;
+        console.log('creating artifact', workspaceRef, projectRef, parentRef, artifactType, artifactName, artifactChildren);
+        
+        var record = null;
+        // need separate record defs since PI/US/TA each have different attributes to refer to their 'parent'
+        if (artifactType.match(/Portfolio/)) {
+            record = Ext.create(this.models[artifactType], {
+                Workspace: workspaceRef,
+                Parent: parentRef,
+                Project: projectRef,
+                Name: artifactName
+            });
+        // Stories with Feature as Parent
+        } else if (artifactType === 'HierarchicalRequirement' && parentRef.match(/portfolio/)) {
+            record = Ext.create(this.models[artifactType], {
+                Workspace: workspaceRef,
+                PortfolioItem: parentRef,
+                Project: projectRef,
+                Name: artifactName
+            });
+        // Stories with Story as Parent
+        } else if (artifactType === 'HierarchicalRequirement' && parentRef.match(/hierarchical/)) {
+            record = Ext.create(this.models[artifactType], {
+                Workspace: workspaceRef,
+                Parent: parentRef,
+                Project: projectRef,
+                Name: artifactName
+            });
+        // Task with Story as Parent
+        } else if (artifactType === 'Task') {
+            record = Ext.create(this.models[artifactType], {
+                Workspace: workspaceRef,
+                WorkProduct: parentRef,
+                Project: projectRef,
+                Name: artifactName
+            });
+        } else {
+            console.error("Unexpected artifact type during artifact creation", artifactType);
+        }
+        record.save({
+           callback: function(result, operation) {
+               //TODO handle fail?
+               me.artifactCounter++;
+               console.log("created", result);
+               var currParentRef = result.get('_ref');
+               Ext.Array.each(artifactChildren, function(child) {
+                   me._createArtifactTree(workspaceRef, projectRef, currParentRef, child.type, child.name, child.children);
+               });
+               me._onArtifactCreated();
+           } 
+        });
+    },
+    
+    _onArtifactCreated: function() {
+        var me = this;
+        if (this.artifactCounter === this.artifactCountTotal) {
+            console.log("All Artifacts Created!");
+            me.loadMask.hide();
+            console.log('panel', this.down('panel'));
+            this._navigate(this.down('panel'), 'next');
+        }
+    },
+    
     _onProjectCreated: function() {
         if (this.projectCounter === this.projectCountTotal) {
-            console.log("Projects Created!");
+            console.log("All Projects Created!");
+            this._createArtifacts();
         }
     },
     
@@ -518,5 +599,22 @@ Ext.define('CustomApp', {
                 this._createProjects();
             }
         });
+    },
+    
+    _createTrial: function() {
+        var me = this;
+    
+        var counterRef = {counter: 0};
+        me._countTreeChildren(me.projectTree, counterRef);
+        me.projectCountTotal = counterRef.counter;
+        console.log("Will create %i projects.", me.projectCountTotal);
+        counterRef = {counter: 0};
+        me._countTreeChildren(me.artifactTree, counterRef);
+        me.artifactCountTotal = counterRef.counter;
+        console.log("Will create %i artifacts.", me.artifactCountTotal);
+        
+        // create project structure
+        me._loadModels();
+        // create artifacts
     }
 });
