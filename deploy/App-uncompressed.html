@@ -198,7 +198,7 @@
                         ]
                     }
                 ]
-            },
+            }
             
         ]
     },
@@ -208,26 +208,28 @@
         children: [
             {
                 type: 'PortfolioItem/Feature',
-                name: 'Administrative Activities',
-                children: []
-            },
-            {
-                type: 'PortfolioItem/Feature',
                 name: 'Rally Training + Working Sessions',
-                children: []
-            },
-            {
-                type: 'PortfolioItem/Feature',
-                name: 'The TRIAL',
-                children: []
+                children: [
+                    {
+                        type: 'HierarchicalRequirement',
+                        name: 'Rally/customer collaboration during trial',
+                        children: [
+                            {
+                                type: 'HierarchicalRequirement',
+                                name: "Understand Customer's organizational and operational environment",
+                                children: [
+                                    { type: 'Task', name: 'What is your Product-Team organizational structure to be managed using Agile approaches in Rally?' },
+                                ]
+                            }
+                        ]
+                    }
+                ]
             }
-            
         ]
     },
     launch: function() {
 
-        //this._buildWizard();
-        this._createTrial();
+        this._buildWizard();
     },
 
     /* PRIVATE */    
@@ -386,7 +388,7 @@
     
         var cardFinish = Ext.create('Ext.Component', {
             itemId: 'card-final',
-            html: 'Congratulations!'
+            html: "<div class='headline'>Trial by Rally.</div><div class='content'>Managing your trial just got easier.<div><div class='content'>You now have a way to track your trial and ensure you Rally experience matches your needs.</div><div class='content'><b>Next Step:</b>Collaboration is key.  Your Rally account team will work with you to tailor dashboard views to monitor progress.  Contact them today!</div>"
         });
         
         var wizard = Ext.create('Ext.panel.Panel', {
@@ -470,8 +472,8 @@
         if (cardId === 'card-status') {
             backButton.hide();
             nextButton.hide();
-            var loadMask = new Ext.LoadMask(layout.getActiveItem(), {msg: "Creating Trial..."});    
-            loadMask.show();
+            me.loadMask = new Ext.LoadMask(layout.getActiveItem(), {msg: "Creating Trial..."});    
+            me.loadMask.show();
 
             me._createTrial();
         }
@@ -538,13 +540,23 @@
                 Project: projectRef,
                 Name: artifactName
             });
-        } else if (artifactType === 'HierarchicalRequirement') {
+        // Stories with Feature as Parent
+        } else if (artifactType === 'HierarchicalRequirement' && parentRef.match(/portfolio/)) {
             record = Ext.create(this.models[artifactType], {
                 Workspace: workspaceRef,
                 PortfolioItem: parentRef,
                 Project: projectRef,
                 Name: artifactName
             });
+        // Stories with Story as Parent
+        } else if (artifactType === 'HierarchicalRequirement' && parentRef.match(/hierarchical/)) {
+            record = Ext.create(this.models[artifactType], {
+                Workspace: workspaceRef,
+                Parent: parentRef,
+                Project: projectRef,
+                Name: artifactName
+            });
+        // Task with Story as Parent
         } else if (artifactType === 'Task') {
             record = Ext.create(this.models[artifactType], {
                 Workspace: workspaceRef,
@@ -570,14 +582,19 @@
     },
     
     _onArtifactCreated: function() {
+        var me = this;
         if (this.artifactCounter === this.artifactCountTotal) {
             console.log("All Artifacts Created!");
+            me.loadMask.hide();
+            console.log('panel', this.down('panel'));
+            this._navigate(this.down('panel'), 'next');
         }
     },
     
     _onProjectCreated: function() {
         if (this.projectCounter === this.projectCountTotal) {
             console.log("All Projects Created!");
+            this._createArtifacts();
         }
     },
     
@@ -588,8 +605,7 @@
             scope: this,
             success: function(models) {
                 this.models = models;
-                //FIXMEthis._createProjects();
-                this._createArtifacts();
+                this._createProjects();
             }
         });
     },
