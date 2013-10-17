@@ -15,23 +15,29 @@ Ext.define('CustomApp', {
     artifactCounter: 0,
     artifactCountTotal: 0,
     
+    projectTreeIndex: {},
     projectTree: {
         name: 'RallyTrial',
         children: [
             {
                 name: 'Company',
+                alias: 'company',
                 children: [
                     {
                         name: 'Line of Business',
+                        alias: 'business',
                         children: [
                             {
                                 name: 'Pilot Team',
+                                alias: 'pilot-team',
                                 children: [
                                     {
-                                        name: 'Company Team'
+                                        name: 'Company Team',
+                                        alias: 'company-team'
                                     },
                                     {
-                                        name: 'Rally Team'
+                                        name: 'Rally Team',
+                                        alias: 'rally-team'
                                     }]
                             }]
                     }]
@@ -195,18 +201,22 @@ Ext.define('CustomApp', {
     },
     artifactTree: {
         type: 'PortfolioItem/Initiative',
+        project: 'business',
         name: 'Successful Trial Pilot with (Line of Business Group)',
         children: [
             {
                 type: 'PortfolioItem/Feature',
+                project: 'pilot-team',
                 name: 'Rally Training + Working Sessions',
                 children: [
                     {
                         type: 'HierarchicalRequirement',
+                        project: 'rally-team',
                         name: 'Rally/customer collaboration during trial',
                         children: [
                             {
                                 type: 'HierarchicalRequirement',
+                                project: 'rally-team',
                                 name: "Understand Customer's organizational and operational environment",
                                 children: [
                                     { type: 'Task', name: 'What is your Product-Team organizational structure to be managed using Agile approaches in Rally?' },
@@ -219,10 +229,8 @@ Ext.define('CustomApp', {
         ]
     },
     launch: function() {
-
         this._buildWizard();
     },
-
     /* PRIVATE */    
     _buildWizard: function() {
         var me = this;    
@@ -485,15 +493,17 @@ Ext.define('CustomApp', {
 
     _createProjects: function() {
         var me = this;
+        // replace with Customer provided data
         me.projectTree.children[0].name = me.data.companyName;
         me.projectTree.children[0].children[0].name = me.data.lineOfBusinessName;
         me.projectTree.children[0].children[0].children[0].children[0].name = me.data.pilotTeamName;
-        me._createProjectTree(me.getContext().getWorkspaceRef(), me.data.selectedParentProject, me.projectTree.name, me.projectTree.children);
+        
+        me._createProjectTree(me.getContext().getWorkspaceRef(), me.data.selectedParentProject, me.projectTree.name, me.projectTree.alias, me.projectTree.children);
     },    
     
-    _createProjectTree: function(workspaceRef, parentProjectRef, projectName, children) {
+    _createProjectTree: function(workspaceRef, parentProjectRef, projectName, projectAlias, children) {
         var me = this;
-        console.log('creating project', workspaceRef, parentProjectRef, projectName, children);
+        console.log('creating project', workspaceRef, parentProjectRef, projectName, projectAlias, children);
         var record = Ext.create(this.models['Project'], {
             Name: projectName,
             State: 'Open',
@@ -504,9 +514,12 @@ Ext.define('CustomApp', {
            callback: function(result, operation) {
                //TODO handle fail?
                me.projectCounter++;
-               var currParentProjectId = result.get('ObjectID');
+               var currParentProjectRef = result.get('_ref');
+               // create flat index of alias to project ref for easy lookup during artifact loading
+               me.projectTreeIndex[projectAlias] = currParentProjectRef;
+               
                Ext.Array.each(children, function(child) {
-                   me._createProjectTree(workspaceRef, currParentProjectId, child.name, child.children);
+                   me._createProjectTree(workspaceRef, currParentProjectRef, child.name, child.alias, child.children);
                });
                me._onProjectCreated();
            } 
@@ -515,7 +528,7 @@ Ext.define('CustomApp', {
 
     _createArtifacts: function() {
         var me = this;
-        me._createArtifactTree(me.getContext().getWorkspaceRef(), '/project/699319', null, me.artifactTree.type, me.artifactTree.name, me.artifactTree.children);
+        me._createArtifactTree(me.getContext().getWorkspaceRef(), me.projectTreeIndex[me.artifactTree.project], null, me.artifactTree.type, me.artifactTree.name, me.artifactTree.children);
     },
     
     _createArtifactTree: function(workspaceRef, projectRef, parentRef, artifactType, artifactName, artifactChildren) {
@@ -565,7 +578,7 @@ Ext.define('CustomApp', {
                console.log("created", result);
                var currParentRef = result.get('_ref');
                Ext.Array.each(artifactChildren, function(child) {
-                   me._createArtifactTree(workspaceRef, projectRef, currParentRef, child.type, child.name, child.children);
+                   me._createArtifactTree(workspaceRef, me.projectTreeIndex[child.project], currParentRef, child.type, child.name, child.children);
                });
                me._onArtifactCreated();
            } 
@@ -583,6 +596,8 @@ Ext.define('CustomApp', {
     },
     
     _onProjectCreated: function() {
+        console.log('projectTree', this.projectTree);
+        console.log('projectTreeIndex', this.projectTreeIndex);
         if (this.projectCounter === this.projectCountTotal) {
             console.log("All Projects Created!");
             this._createArtifacts();
