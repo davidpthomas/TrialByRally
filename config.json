@@ -1,7 +1,7 @@
 {
    "name": "TrialByRally",
    "className": "CustomApp",
-   "server": "https://demo01.rallydev.com",
+   "server": "https://ec2-54-245-218-29.us-west-2.compute.amazonaws.com",
    "sdk": "2.0rc1",
    "javascript": [
       "App.js",

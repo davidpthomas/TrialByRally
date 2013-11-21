@@ -10,6 +10,12 @@
     font-style: italic;
 }
 
+.enlarged-number {
+    font-size: 5.0em;
+    font-family: arial, sans-serif;
+    margin: 20px 20px 20px 20px;
+}
+
 .headline {
     font-size: 3.0em;
     font-family: arial, sans-serif;
