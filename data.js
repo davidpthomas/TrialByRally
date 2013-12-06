@@ -1,4 +1,59 @@
-var projectTree = 
+var projectTreeSingle = 
+    {
+        name: 'RallyTrial',
+        children: [
+            {
+                name: 'Company',
+                alias: 'company',
+                children: [
+                    {
+                        name: 'Line of Business',
+                        alias: 'business',
+                        children: [
+                            {
+                                name: 'Pilot Team',
+                                alias: 'pilot-team',
+                                children: [
+                                    {
+                                        name: 'Company Team',
+                                        alias: 'company-team'
+                                    },
+                                    {
+                                        name: 'Rally Team',
+                                        alias: 'rally-team'
+                                    }]
+                            }]
+                    }]
+            }
+        ]
+    }
+
+var artifactTreeSingle = 
+    {
+        type: 'PortfolioItem/Initiative',
+        name: 'Successful Trial Pilot with (Line of Business Group)',
+        children: [
+            {
+                type: 'PortfolioItem/Feature',
+                name: 'Administrative Activities',
+                children: [
+                    {
+                        type: 'HierarchicalRequirement',
+                        name: 'Trial agreements',
+                        children: [
+                            { type: 'Task', name: 'NDA' },
+                            { type: 'Task', name: 'Info Security' },
+                            { type: 'Task', name: 'Procurement' },
+                            { type: 'Task', name: 'Rally Deployment' },
+                            { type: 'Task', name: 'Identify Pilot Team' }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+var projectTreeMulti = 
 	{
         name: 'RallyTrial',
         children: [
@@ -28,7 +83,7 @@ var projectTree =
         ]
     }
 
-var artifactTree =
+var artifactTreeMulti =
 	{
         type: 'PortfolioItem/Initiative',
         name: 'Successful Trial Pilot with (Line of Business Group)',
