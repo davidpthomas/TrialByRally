@@ -24,11 +24,6 @@ Ext.define('CustomApp', {
     projectTree: [],
     artifactTree: [],
 
-    // {{{
-    
-
-    // }}}
-
     launch: function() {
       this._createLayout();
     },
@@ -212,7 +207,7 @@ Ext.define('CustomApp', {
         Rally.data.PreferenceManager.load({
             appID: this.getAppId(),
             success: function(prefs) {
-                if (prefs.run === undefined || prefs.run == 0)
+                if (prefs.run === undefined || prefs.run === 0)
                 {
                   Rally.data.PreferenceManager.update({
                     appID: this.getAppId(),
@@ -358,6 +353,8 @@ Ext.define('CustomApp', {
               xtype: 'rallybutton',
               itemId: 'SingleButton',
               text: 'Single Team',
+              // styleHtmlContent: true,
+              // styleHtmlcls: 'button-text',
               width: 150,
               height: 150,
               margin: '0 0 50 120',
@@ -582,7 +579,7 @@ Ext.define('CustomApp', {
                //TODO handle fail?
                me.artifactCounter++;
 
-               if (artifactChildren === undefined || artifactChildren.length == 0) {
+               if (artifactChildren === undefined || artifactChildren.length === 0) {
                     deferred.resolve(result);
                }
                else{ 
@@ -632,7 +629,7 @@ Ext.define('CustomApp', {
                                     // });
                                     deferred.resolve(result);
                                     this.bulkUpdateCounter--;
-                                    if (this.bulkUpdateCounter == 0) {
+                                    if (this.bulkUpdateCounter === 0) {
                                         this._onArtifactCreated();
                                     }
                                 },

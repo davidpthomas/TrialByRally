@@ -26,7 +26,7 @@ var projectTreeSingle =
                     }]
             }
         ]
-    }
+    };
 
 var artifactTreeSingle = 
     {
@@ -51,7 +51,7 @@ var artifactTreeSingle =
                 ]
             }
         ]
-    }
+    };
 
 var projectTreeMulti = 
 	{
@@ -81,7 +81,7 @@ var projectTreeMulti =
                     }]
             }
         ]
-    }
+    };
 
 var artifactTreeMulti =
 	{
